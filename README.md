@@ -8,7 +8,7 @@ An empirical research study and benchmarking suite evaluating techniques to redu
 
 ---
 
-## 📖 Background & Concepts (For Beginners)
+## 📖 Background & Concepts 
 
 If you are new to serverless cloud systems or operating system virtualization, here is an intuitive breakdown of the problem this research addresses:
 
