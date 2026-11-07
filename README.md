@@ -92,6 +92,3 @@ python3 generate_report.py
 
 ---
 
-## Author
-- **Devansh Chaudhary** | Department of Electrical Engineering, Indian Institute of Technology Indore (IIT Indore)
-- GitHub: [@DevanshChaudhary163](https://github.com/DevanshChaudhary163)
