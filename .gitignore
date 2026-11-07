@@ -8,9 +8,14 @@ __pycache__/
 *.socket
 /tmp/
 
-# Logs and system outputs
+# Local raw logs and outputs
+pane.txt
 *.log
 results/
+*.png
+
+# Compiled reports (kept local)
+Firecracker_REAP_Benchmark_Report.pdf
 
 # OS and Editor files
 .DS_Store
