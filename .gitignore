@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sockets and temporary runtime files
+*.sock
+*.socket
+/tmp/
+
+# Logs and outputs
+*.log
+results/benchmarks/
+results/reap/
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
