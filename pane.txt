@@ -1,0 +1,691 @@
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo apt install -y screenscreen is already the newest versio
+n (4.9.1-3ubuntu2).
+screen set to manually installed.
+Summary:
+  Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 108
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -L \
+  -Logfile /tmp/fc-benchmark-console.log \
+  -dmS fcbench \
+  firecracker --api-sock /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ BASE="/home/devansh-chaudhary/firecracker-research"
+SOCK="/tmp/fc-benchmark.socket"
+KERNEL="$BASE/kernels/vmlinux"
+ROOTFS="$BASE/rootfs/vm2.ext4"
+devansh-chaudhary@Devansh:~/firecracker-research$ pgrep -af firecracker
+45601 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45604 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45605 firecracker --api-sock /tmp/fc-vm1.socket
+62092 sudo firecracker --api-sock /tmp/fc-recovery.socket
+62094 sudo firecracker --api-sock /tmp/fc-recovery.socket
+62095 firecracker --api-sock /tmp/fc-recovery.socket
+62438 SCREEN -L -Logfile /tmp/fc-benchmark-console.log -dmS fcbench firecracker --api-sock /tmp/fc-benchmark.so
+cket
+62439 firecracker --api-sock /tmp/fc-benchmark.socke
+devansh-chaudhary@Devansh:~/firecracker-research$
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo fuser -k /tmp/fc-recovery.socket
+/tmp/fc-recovery.socket: 62095
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo rm -f /tmp/fc-recovery.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -L \
+  -Logfile /tmp/fc-benchmark.log \
+  -dmS fcbench \
+  firecracker --api-sock /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -ls
+There is a screen on:
+	62438.fcbench	(11/08/2026 02:56:12 AM)	(Detached)
+1 Socket in /run/screen/S-root.
+devansh-chaudhary@Devansh:~/firecracker-research$ BASE="/home/devansh-chaudhary/firecracker-research"
+SOCK="/tmp/fc-benchmark.socket"
+KERNEL="$BASE/kernels/vmlinux"
+ROOTFS="$BASE/rootfs/vm2.ext4"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/machine-config \
+  -H "Content-Type: application/json" \
+  -d '{"vcpu_count":1,"mem_size_mib":512,"smt":false}'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/boot-source \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"kernel_image_path\": \"$KERNEL\",
+    \"boot_args\": \"console=ttyS0 reboot=k panic=1 pci=off root=/dev/vda rw\"
+  }"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/drives/rootfs \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"drive_id\": \"rootfs\",
+    \"path_on_host\": \"$ROOTFS\",
+    \"is_root_device\": true,
+    \"is_read_only\": false
+  }"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/actions \
+  -H "Content-Type: application/json" \
+  -d '{"action_type":"InstanceStart"}'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -r fcbench
+[detached from 62438.fcbench]
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'PING\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo tail -n 20 /tmp/fc-benchmark.log
+2026-11-08T02:58:46.419603120 [anonymous-instance:main] Running Firecracker v1.17.0
+2026-11-08T02:58:46.419822933 [anonymous-instance:main] RunWithApiError error: Failed to open the API socket at
+: /tmp/fc-benchmark.socket. Check that it is not already used.
+Error: RunWithApi(FailedToBindSocket("/tmp/fc-benchmark.socket"))
+2026-11-08T02:58:46.419857260 [anonymous-instance:main] Firecracker exiting with error. exit_code=1
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo fuser -k /tmp/fc-benchmark.socket 2>/dev/null
+ 62439devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -X quit
+No screen session found.
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo rm -f /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -L \
+  -Logfile /tmp/fc-benchmark.log \
+  -dmS fcbench \
+  firecracker --api-sock /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ pgrep -af firecracker
+45601 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45604 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45605 firecracker --api-sock /tmp/fc-vm1.socket
+62880 SCREEN -L -Logfile /tmp/fc-benchmark.log -dmS fcbench firecracker --api-sock /tmp/fc-benchmark.socket
+62881 firecracker --api-sock /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ ls -l /tmp/fc-benchmark.socket
+srwxr-xr-x 1 root root 0 Nov  8 03:02 /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -ls
+There is a screen on:
+	62880.fcbench	(11/08/2026 03:02:02 AM)	(Detached)
+1 Socket in /run/screen/S-root.
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'PING\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo tail -n 20 /tmp/fc-benchmark.log
+2026-11-08T02:58:46.419603120 [anonymous-instance:main] Running Firecracker v1.17.0
+2026-11-08T02:58:46.419822933 [anonymous-instance:main] RunWithApiError error: Failed to open the API socket at
+: /tmp/fc-benchmark.socket. Check that it is not already used.
+Error: RunWithApi(FailedToBindSocket("/tmp/fc-benchmark.socket"))
+2026-11-08T02:58:46.419857260 [anonymous-instance:main] Firecracker exiting with error. exit_code=1
+2026-11-08T03:02:02.424886986 [anonymous-instance:main] Running Firecracker v1.17.0
+2026-11-08T03:02:02.425099005 [anonymous-instance:main] Listening on API socket ("/tmp/fc-benchmark.socket").
+2026-11-08T03:02:02.425560116 [anonymous-instance:fc_api] API server started.
+devansh-chaudhary@Devansh:~/firecracker-research$ BASE="/home/devansh-chaudhary/firecracker-research"
+SOCK="/tmp/fc-benchmark.socket"
+KERNEL="$BASE/kernels/vmlinux"
+ROOTFS="$BASE/rootfs/vm2.ext4"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/machine-config \
+  -H "Content-Type: application/json" \
+  -d '{"vcpu_count":1,"mem_size_mib":512,"smt":false}'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/boot-source \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"kernel_image_path\": \"$KERNEL\",
+    \"boot_args\": \"console=ttyS0 reboot=k panic=1 pci=off root=/dev/vda rw\"
+  }"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/drives/rootfs \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"drive_id\": \"rootfs\",
+    \"path_on_host\": \"$ROOTFS\",
+    \"is_root_device\": true,
+    \"is_read_only\": false
+  }"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body --unix-socket "$SOCK" \
+  -X PUT http://localhost/actions \
+  -H "Content-Type: application/json" \
+  -d '{"action_type":"InstanceStart"}'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -r fcbench
+[detached from 62880.fcbench]
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'PING\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo tail -n 20 /tmp/fc-benchmark.log
+         Starting systemd-update-utmp-runle…- Record Runlevel Change in UTMP...
+[  OK  ] Finished systemd-update-utmp-runle…e - Record Runlevel Change in UTMP.
+[  OK  ] Finished fcnet.service.
+
+Ubuntu 24.04.5 LTS ubuntu-fc-uvm ttyS0
+
+ubuntu-fc-uvm login: root (automatic login)
+
+Welcome to Ubuntu 24.04.5 LTS (GNU/Linux 6.18.56+ x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+root@ubuntu-fc-uvm:~# /root/benchmarks/runner.sh
+RUNNER_READY
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'RUN hello 101\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo tail -n 20 /tmp/fc-benchmark.log
+[  OK  ] Finished fcnet.service.
+
+Ubuntu 24.04.5 LTS ubuntu-fc-uvm ttyS0
+
+ubuntu-fc-uvm login: root (automatic login)
+
+Welcome to Ubuntu 24.04.5 LTS (GNU/Linux 6.18.56+ x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+root@ubuntu-fc-uvm:~# /root/benchmarks/runner.sh
+RUNNER_READY
+PING
+PONG
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'PING\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo tail -n 20 /tmp/fc-benchmark.log
+Welcome to Ubuntu 24.04.5 LTS (GNU/Linux 6.18.56+ x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+root@ubuntu-fc-uvm:~# /root/benchmarks/runner.sh
+RUNNER_READY
+PING
+PONG
+RUN hello 101
+BENCHMARK_STARTED id=101 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=101 status=OK
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'PING\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo tail -n 20 /tmp/fc-benchmark.log
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+root@ubuntu-fc-uvm:~# /root/benchmarks/runner.sh
+RUNNER_READY
+PING
+PONG
+RUN hello 101
+BENCHMARK_STARTED id=101 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=101 status=OK
+PING
+PONG
+devansh-chaudhary@Devansh:~/firecracker-research$ sleep 2
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo tail -n 20 /tmp/fc-benchmark.log
+ * Support:        https://ubuntu.com/pro
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the 'unminimize' command.
+root@ubuntu-fc-uvm:~# /root/benchmarks/runner.sh
+RUNNER_READY
+PING
+PONG
+RUN hello 101
+BENCHMARK_STARTED id=101 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=101 status=OK
+PING
+PONG
+PING
+PONG
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -X logfile flush 1
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'RUN hello 102\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sleep 2
+sudo tail -n 20 /tmp/fc-benchmark.log
+root@ubuntu-fc-uvm:~# /root/benchmarks/runner.sh
+RUNNER_READY
+PING
+PONG
+RUN hello 101
+BENCHMARK_STARTED id=101 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=101 status=OK
+PING
+PONG
+PING
+PONG
+RUN hello 102
+BENCHMARK_STARTED id=102 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=102 status=OK
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -L \
+  -Logfile /tmp/fc-benchmark.log \
+  -dmS fcbench \
+  firecracker --api-sock /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -X logfile flush 1
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'RUN hello 103\r'
+sleep 2
+sudo tail -n 20 /tmp/fc-benchmark.log
+PING
+PONG
+PING
+PONG
+RUN hello 102
+BENCHMARK_STARTED id=102 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=102 status=OK
+2026-11-08T03:12:16.987525539 [anonymous-instance:main] Running Firecracker v1.17.0
+2026-11-08T03:12:16.987785816 [anonymous-instance:main] RunWithApiError error: Failed to open the API socket at
+: /tmp/fc-benchmark.socket. Check that it is not already used.
+Error: RunWithApi(FailedToBindSocket("/tmp/fc-benchmark.socket"))
+2026-11-08T03:12:16.987819227 [anonymous-instance:main] Firecracker exiting with error. exit_code=1
+RUN hello 103
+BENCHMARK_STARTED id=103 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=103 status=OK
+devansh-chaudhary@Devansh:~/firecracker-research$ cd /home/devansh-chaudhary/firecracker-research
+
+mkdir -p snapshots/benchmark
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -p 0 -X stuff $'PING\r'
+devansh-chaudhary@Devansh:~/firecracker-research$ sleep 2
+sudo tail -n 10 /tmp/fc-benchmark.log
+Error: RunWithApi(FailedToBindSocket("/tmp/fc-benchmark.socket"))
+2026-11-08T03:12:16.987819227 [anonymous-instance:main] Firecracker exiting with error. exit_code=1
+RUN hello 103
+BENCHMARK_STARTED id=103 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=103 status=OK
+PING
+PONG
+devansh-chaudhary@Devansh:~/firecracker-research$ SOCK="/tmp/fc-benchmark.socket"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body \
+  --unix-socket "$SOCK" \
+  -X PATCH http://localhost/vm \
+  -H "Content-Type: application/json" \
+  -d '{"state":"Paused"}'
+devansh-chaudhary@Devansh:~/firecracker-research$ BASE="/home/devansh-chaudhary/firecracker-research"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo curl --fail-with-body \
+  --unix-socket "$SOCK" \
+  -X PUT http://localhost/snapshot/create \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"snapshot_type\": \"Full\",
+    \"snapshot_path\": \"$BASE/snapshots/benchmark/vm_state\",
+    \"mem_file_path\": \"$BASE/snapshots/benchmark/vm_memory\"
+  }"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo cp \
+  "$BASE/rootfs/vm2.ext4" \
+  "$BASE/snapshots/benchmark/rootfs_snapshot.ext4"
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo ls -lh "$BASE/snapshots/benchmark/"
+total 807M
+-rw-r--r-- 1 root root 1.0G Nov  8 03:15 rootfs_snapshot.ext4
+-rw-r--r-- 1 root root 512M Nov  8 03:15 vm_memory
+-rw-r--r-- 1 root root  14K Nov  8 03:15 vm_state
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo screen -S fcbench -X quit
+devansh-chaudhary@Devansh:~/firecracker-research$ pgrep -af firecracker
+45601 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45604 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45605 firecracker --api-sock /tmp/fc-vm1.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo rm -f /tmp/fc-benchmark.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ cd /home/devansh-chaudhary/firecracker-research
+
+nano scripts/benchmark.py
+devansh-chaudhary@Devansh:~/firecracker-research$ cd /home/devansh-chaudhary/firecracker-research
+
+sudo python3 scripts/benchmark.py
+2026-11-08T03:18:33.065009190 [anonymous-instance:main] Running Firecracker v1.17.0
+2026-11-08T03:18:33.065304975 [anonymous-instance:main] Listening on API socket ("/tmp/fc-benchmark-python.sock
+et").
+2026-11-08T03:18:33.065998947 [anonymous-instance:fc_api] API server started.
+2026-11-08T03:18:33.084159365 [anonymous-instance:fc_api] The API server received a Put request on "/snapshot/l
+oad" with body "{\"snapshot_path\": \"/home/devansh-chaudhary/firecracker-research/snapshots/benchmark/vm_state
+\", \"mem_backend\": {\"backend_type\": \"File\", \"backend_path\": \"/home/devansh-chaudhary/firecracker-resea
+rch/snapshots/benchmark/vm_memory\"}, \"resume_vm\": false}".
+2026-11-08T03:18:33.084951813 [anonymous-instance:main] Host CPU vendor ID: [71, 101, 110, 117, 105, 110, 101,
+73, 110, 116, 101, 108]
+2026-11-08T03:18:33.084972237 [anonymous-instance:main] Snapshot CPU vendor ID: [71, 101, 110, 117, 105, 110, 1
+01, 73, 110, 116, 101, 108]
+2026-11-08T03:18:33.087457131 [anonymous-instance:fc_api] The request was executed successfully. Status code: 2
+04 No Content.
+2026-11-08T03:18:33.087474768 [anonymous-instance:fc_api] 'load snapshot' API request took 3321 us.
+2026-11-08T03:18:33.092371862 [anonymous-instance:fc_api] The API server received a Patch request on "/vm" with
+ body "{\"state\": \"Resumed\"}".
+2026-11-08T03:18:33.092506095 [anonymous-instance:main] Artificially kick devices
+2026-11-08T03:18:33.092516662 [anonymous-instance:main] [Block:rootfs] notifying queues
+2026-11-08T03:18:33.092609166 [anonymous-instance:fc_vcpu 0] Received a VcpuEvent::Resume message with immediat
+e_exit enabled. immediate_exit was disabled before proceeding
+2026-11-08T03:18:33.092708531 [anonymous-instance:main] 'resume vm' VMM action took 206 us.
+2026-11-08T03:18:33.092785194 [anonymous-instance:fc_api] The request was executed successfully. Status code: 2
+04 No Content.
+2026-11-08T03:18:33.092794654 [anonymous-instance:fc_api] 'resume vm' API request took 426 us.
+RUN hello 1
+BENCHMARK_STARTED id=1 function=hello
+FUNCTION_START
+Hello World from Firecracker!
+BENCHMARK_COMPLETE
+BENCHMARK_COMPLETE id=1 status=OK
+=============================================
+Method: Snapshot restoration
+Function: Hello World
+Total latency: 89.975 ms
+=============================================
+devansh-chaudhary@Devansh:~/firecracker-research$ cp scripts/benchmark.py scripts/benchmark_original.py
+devansh-chaudhary@Devansh:~/firecracker-research$ mkdir -p results/benchmarks
+devansh-chaudhary@Devansh:~/firecracker-research$ nano scripts/benchmark_snapshot.py
+devansh-chaudhary@Devansh:~/firecracker-research$ pgrep -af firecracker
+45601 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45604 sudo firecracker --api-sock /tmp/fc-vm1.socket
+45605 firecracker --api-sock /tmp/fc-vm1.socket
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo ls -lh snapshots/benchmark/
+total 807M
+-rw-r--r-- 1 root root 1.0G Nov  8 03:15 rootfs_snapshot.ext4
+-rw-r--r-- 1 root root 512M Nov  8 03:15 vm_memory
+-rw-r--r-- 1 root root  14K Nov  8 03:15 vm_state
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo python3 scripts/benchmark_snapshot.py
+Trial 01: 33.957 ms
+Trial 02: 41.931 ms
+Trial 03: 41.415 ms
+Trial 04: 41.166 ms
+Trial 05: 40.712 ms
+Trial 06: 43.045 ms
+Trial 07: 42.072 ms
+Trial 08: 42.266 ms
+Trial 09: 40.976 ms
+Trial 10: 43.268 ms
+Trial 11: 43.404 ms
+Trial 12: 41.051 ms
+Trial 13: 42.345 ms
+Trial 14: 42.740 ms
+Trial 15: 40.054 ms
+Trial 16: 43.251 ms
+Trial 17: 42.366 ms
+Trial 18: 44.583 ms
+Trial 19: 38.842 ms
+Trial 20: 32.480 ms
+Trial 21: 41.210 ms
+Trial 22: 43.549 ms
+Trial 23: 43.714 ms
+Trial 24: 42.421 ms
+Trial 25: 39.756 ms
+Trial 26: 38.764 ms
+Trial 27: 43.358 ms
+Trial 28: 41.590 ms
+Trial 29: 44.227 ms
+Trial 30: 44.305 ms
+
+Benchmark completed.
+Results saved to: /home/devansh-chaudhary/firecracker-research/results/benchmarks/snapshot.csv
+devansh-chaudhary@Devansh:~/firecracker-research$ nano scripts/analyze_snapshot.py
+devansh-chaudhary@Devansh:~/firecracker-research$ python3 scripts/analyze_snapshot.py
+
+SNAPSHOT RESTORATION BENCHMARK
+----------------------------------------
+Trials:       30
+Mean:         41.494 ms
+Median:       42.169 ms
+Minimum:      32.480 ms
+Maximum:      44.583 ms
+Std deviation:2.715 ms
+P95:          44.305 ms
+devansh-chaudhary@Devansh:~/firecracker-research$ mkdir -p results/reap/benchmark
+devansh-chaudhary@Devansh:~/firecracker-research$ ls -lh bin/uffd_handler*
+-rwxrwxr-x 1 devansh-chaudhary devansh-chaudhary 4.6M Nov  7 20:14 bin/uffd_handler
+-rwxrwxr-x 1 devansh-chaudhary devansh-chaudhary 4.9M Nov  8 02:10 bin/uffd_handler_reap
+-rwxrwxr-x 1 devansh-chaudhary devansh-chaudhary 4.6M Nov  8 01:47 bin/uffd_handler_record
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo ls -lh snapshots/benchmark/
+total 807M
+-rw-r--r-- 1 root root 1.0G Nov  8 03:15 rootfs_snapshot.ext4
+-rw-r--r-- 1 root root 512M Nov  8 03:15 vm_memory
+-rw-r--r-- 1 root root  14K Nov  8 03:15 vm_state
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo python3 scripts/benchmark_uffd.py --mode record
+python3: can't open file '/home/devansh-chaudhary/firecracker-research/scripts/benchmark_uffd.py': [Errno 2] No
+ such file or directory
+devansh-chaudhary@Devansh:~/firecracker-research$ nano scripts/benchmark_uffd.py
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo python3 scripts/benchmark_uffd.py --mode record
+RECORD Trial 01: 69.867 ms
+Results saved: /home/devansh-chaudhary/firecracker-research/results/benchmarks/record.csv
+devansh-chaudhary@Devansh:~/firecracker-research$ grep 'REAP_PAGE_OFFSET=' \
+  results/reap/benchmark/record_001.log | head
+REAP_PAGE_OFFSET=39297024
+REAP_PAGE_OFFSET=39292928
+REAP_PAGE_OFFSET=913408
+REAP_PAGE_OFFSET=909312
+REAP_PAGE_OFFSET=61034496
+REAP_PAGE_OFFSET=524378112
+REAP_PAGE_OFFSET=61038592
+REAP_PAGE_OFFSET=75972608
+REAP_PAGE_OFFSET=536657920
+REAP_PAGE_OFFSET=536653824
+devansh-chaudhary@Devansh:~/firecracker-research$ python3 - <<'PY'
+from pathlib import Path
+import re
+
+base = Path("/home/devansh-chaudhary/firecracker-research")
+folder = base / "results/reap/benchmark"
+log = folder / "record_001.log"
+snapshot = base / "snapshots/benchmark/vm_memory"
+output = folder / "working_set_offsets.txt"
+
+offsets = sorted({
+    int(x) for x in re.findall(
+        r"REAP_PAGE_OFFSET=(\d+)",
+        log.read_text(errors="replace")
+    )
+})
+
+if not offsets:
+    raise SystemExit("No page offsets recorded. Check recorder log.")
+
+size = snapshot.stat().st_size
+
+for offset in offsets:
+    if offset % 4096 or offset + 4096 > size:
+        raise SystemExit(f"Invalid page offset: {offset}")
+
+output.write_text(
+    "".join(f"{offset}\n" for offset in offsets)
+)
+
+print(f"Recorded pages: {len(offsets)}")
+print(f"Working-set size: {len(offsets)*4096/1048576:.3f} MiB")
+print(f"Saved: {output}")
+PY
+Recorded pages: 2024
+Working-set size: 7.906 MiB
+Saved: /home/devansh-chaudhary/firecracker-research/results/reap/benchmark/working_set_offsets.txt
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo python3 scripts/benchmark_uffd.py --mode reap --trials 1
+REAP Trial 01: 83.442 ms
+Results saved: /home/devansh-chaudhary/firecracker-research/results/benchmarks/reap.csv
+devansh-chaudhary@Devansh:~/firecracker-research$ grep 'PREFETCH_COMPLETE' \
+  results/reap/benchmark/reap_001.log
+PREFETCH_COMPLETE pages=2024 elapsed_ms=3.428
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo python3 scripts/benchmark_uffd.py --mode reap --trials 3
+0
+REAP Trial 01: 53.034 ms
+REAP Trial 02: 90.926 ms
+REAP Trial 03: 55.932 ms
+REAP Trial 04: 52.801 ms
+REAP Trial 05: 59.288 ms
+REAP Trial 06: 50.447 ms
+REAP Trial 07: 92.007 ms
+REAP Trial 08: 91.594 ms
+REAP Trial 09: 90.986 ms
+REAP Trial 10: 92.721 ms
+REAP Trial 11: 90.977 ms
+REAP Trial 12: 91.698 ms
+REAP Trial 13: 93.074 ms
+REAP Trial 14: 95.408 ms
+REAP Trial 15: 94.250 ms
+REAP Trial 16: 51.716 ms
+REAP Trial 17: 92.023 ms
+REAP Trial 18: 48.207 ms
+REAP Trial 19: 53.369 ms
+REAP Trial 20: 93.878 ms
+REAP Trial 21: 91.658 ms
+REAP Trial 22: 95.656 ms
+REAP Trial 23: 92.435 ms
+REAP Trial 24: 91.165 ms
+REAP Trial 25: 52.720 ms
+REAP Trial 26: 94.231 ms
+REAP Trial 27: 92.177 ms
+REAP Trial 28: 50.510 ms
+REAP Trial 29: 91.635 ms
+REAP Trial 30: 94.524 ms
+Results saved: /home/devansh-chaudhary/firecracker-research/results/benchmarks/reap.csv
+devansh-chaudhary@Devansh:~/firecracker-research$ results/benchmarks/reap.csv
+-bash: results/benchmarks/reap.csv: Permission denied
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo python3 scripts/benchmark_uffd.py --mode uffd --trials 3
+0
+UFFD Trial 01: 76.043 ms
+UFFD Trial 02: 121.335 ms
+UFFD Trial 03: 108.347 ms
+UFFD Trial 04: 120.517 ms
+UFFD Trial 05: 122.313 ms
+UFFD Trial 06: 86.620 ms
+UFFD Trial 07: 121.265 ms
+UFFD Trial 08: 63.220 ms
+UFFD Trial 09: 69.171 ms
+UFFD Trial 10: 114.450 ms
+UFFD Trial 11: 117.139 ms
+UFFD Trial 12: 121.516 ms
+UFFD Trial 13: 113.918 ms
+UFFD Trial 14: 119.671 ms
+UFFD Trial 15: 81.637 ms
+UFFD Trial 16: 82.230 ms
+UFFD Trial 17: 119.567 ms
+UFFD Trial 18: 87.348 ms
+UFFD Trial 19: 84.254 ms
+UFFD Trial 20: 123.565 ms
+UFFD Trial 21: 119.567 ms
+UFFD Trial 22: 117.727 ms
+UFFD Trial 23: 119.730 ms
+UFFD Trial 24: 79.712 ms
+UFFD Trial 25: 120.784 ms
+UFFD Trial 26: 119.325 ms
+UFFD Trial 27: 80.993 ms
+UFFD Trial 28: 115.451 ms
+UFFD Trial 29: 79.567 ms
+UFFD Trial 30: 84.974 ms
+Results saved: /home/devansh-chaudhary/firecracker-research/results/benchmarks/uffd.csv
+devansh-chaudhary@Devansh:~/firecracker-research$ python3 - <<'PY'
+import csv
+import statistics
+from pathlib import Path
+
+folder = Path("results/benchmarks")
+
+for method in ["snapshot", "uffd", "reap"]:
+    path = folder / f"{method}.csv"
+
+    with path.open() as f:
+        rows = list(csv.DictReader(f))
+
+    times = [float(r["total_ms"]) for r in rows]
+    ordered = sorted(times)
+
+    # Nearest-rank P95, matching the earlier analysis script
+    p95_index = max(0, (95 * len(times) + 99) // 100 - 1)
+
+    print(f"\n{method.upper()}")
+    print(f"Trials: {len(times)}")
+    print(f"Mean: {statistics.mean(times):.3f} ms")
+    print(f"Median: {statistics.median(times):.3f} ms")
+    print(f"Minimum: {min(times):.3f} ms")
+    print(f"Maximum: {max(times):.3f} ms")
+    print(f"P95: {ordered[p95_index]:.3f} ms")
+    if len(times) > 1:
+        print(f"Std dev: {statistics.stdev(times):.3f} ms")
+PY
+
+SNAPSHOT
+Trials: 30
+Mean: 41.494 ms
+Median: 42.169 ms
+Minimum: 32.480 ms
+Maximum: 44.583 ms
+P95: 44.305 ms
+Std dev: 2.715 ms
+
+UFFD
+Trials: 30
+Mean: 103.065 ms
+Median: 114.951 ms
+Minimum: 63.220 ms
+Maximum: 123.565 ms
+P95: 122.313 ms
+Std dev: 20.139 ms
+
+REAP
+Trials: 30
+Mean: 79.368 ms
+Median: 91.614 ms
+Minimum: 48.207 ms
+Maximum: 95.656 ms
+P95: 95.408 ms
+Std dev: 19.221 ms
+devansh-chaudhary@Devansh:~/firecracker-research$ nano scripts/memrunner.c
+devansh-chaudhary@Devansh:~/firecracker-research$ gcc -O2 -static \
+    -o scripts/memrunner \
+    scripts/memrunner.c
+devansh-chaudhary@Devansh:~/firecracker-research$ file scripts/memrunner
+scripts/memrunner: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=7
+8e4adeccf097b89b115e44eeff1f5f3a8948dcf, for GNU/Linux 3.2.0, not stripped
+devansh-chaudhary@Devansh:~/firecracker-research$ cp rootfs/benchmark-base.ext4 \
+   rootfs/memscan.ext4
+cp: cannot stat 'rootfs/benchmark-base.ext4': No such file or directory
+devansh-chaudhary@Devansh:~/firecracker-research$ cp rootfs-base.ext4 \
+   rootfs/memscan.ext4
+cp: cannot stat 'rootfs-base.ext4': No such file or directory
+devansh-chaudhary@Devansh:~/firecracker-research$ cp rootfs/base.ext4 \
+   rootfs/memscan.ext4
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo mkdir -p /mnt/fc-memscan
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo mount -o loop \
+    rootfs/memscan.ext4 \
+    /mnt/fc-memscan
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo mkdir -p /mnt/fc-memscan/root/benchmarks
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo cp scripts/memrunner \
+    /mnt/fc-memscan/root/benchmarks/memrunner
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo chmod +x \
+    /mnt/fc-memscan/root/benchmarks/memrunner
+devansh-chaudhary@Devansh:~/firecracker-research$ sync
+sudo umount /mnt/fc-memscan
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo firecracker --api-sock /tmp/firecracker.socket
+2026-11-08T03:46:13.723895097 [anonymous-instance:main] Running Firecracker v1.17.0
+2026-11-08T03:46:13.724104308 [anonymous-instance:main] Listening on API socket ("/tmp/firecracker.socket").
+2026-11-08T03:46:13.724559805 [anonymous-instance:fc_api] API server started.
+^C
+devansh-chaudhary@Devansh:~/firecracker-research$ sudo apt install xclip        # one-time install
+history | tail -n 100 | xclip -selection clipboard
+Installing:
+  xclip
+
+Summary:
+  Upgrading: 0, Installing: 1, Removing: 0, Not Upgrading: 108
+  Download size: 17.2 kB
+  Space needed: 54.3 kB / 69.8 GB available
+
+Get:1 http://in.archive.ubuntu.com/ubuntu resolute/main amd64 xclip amd64 0.13-4build1 [17.2 kB]
+Fetched 17.2 kB in 1s (12.6 kB/s)
+Selecting previously unselected package xclip.
+(Reading database… 198196 files and directories currently installed.)
+Preparing to unpack …/xclip_0.13-4build1_amd64.deb…
+Unpacking xclip (0.13-4build1)…
+Setting up xclip (0.13-4build1)…
+Processing triggers for man-db (2.13.1-1build1)…
+devansh-chaudhary@Devansh:~/firecracker-research$ history > ~/history.txt
+devansh-chaudhary@Devansh:~/firecracker-research$ history | tail -n 100 | xclip -selection clipboard
+devansh-chaudhary@Devansh:~/firecracker-research$ tmux capture-pane -p -S - -t 1 > ~/pane.txt
+devansh-chaudhary@Devansh:~/firecracker-research$ tmux capture-pane -p -S -  > ~/pane.txt
+

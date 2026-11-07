@@ -8,10 +8,9 @@ __pycache__/
 *.socket
 /tmp/
 
-# Logs and outputs
+# Logs and system outputs
 *.log
-results/benchmarks/
-results/reap/
+results/
 
 # OS and Editor files
 .DS_Store

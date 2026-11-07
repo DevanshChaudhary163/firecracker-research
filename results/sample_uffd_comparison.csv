@@ -1,4 +1,0 @@
-method,trials,ready_ms_mean,invocation_ms_mean,total_ms_mean,total_ms_p95,prefetched_pages,prefetch_ms_mean
-Snapshot (File-backed),30,5.76,1.98,7.74,8.41,0,0.0
-Lazy UFFD (Demand Paging),30,4.12,12.85,16.97,19.42,0,0.0
-REAP (Prefetched Working Set),30,5.43,2.15,7.58,8.12,412,1.31
